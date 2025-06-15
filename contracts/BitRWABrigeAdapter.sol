@@ -1,25 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import { CCIPReceiver, Client } from "@chainlink/contracts-ccip/contracts/applications/CCIPReceiver.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
+import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "@chainlink/contracts-ccip/contracts/applications/CCIPReceiver.sol";
-import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+interface IMintableERC20 is IERC20 {
+    function mint(address to, uint256 amount) external;
+}
 
-contract bitRWABridgeAdapter is CCIPReceiver {
-    // rRWA Token
-    ERC20 public immutable rRWAToken;
-    
-    // Price Feed
+contract BitRWABridgeAdapter is CCIPReceiver {
+    IMintableERC20 public immutable rRWAToken;
     AggregatorV3Interface public priceFeed;
-    
-    // Ethereum Bridge
     address public immutable ethereumBridge;
-    
+
     event rRWAMinted(
         address indexed bitmaskWallet,
         uint256 amount,
-        uint256 priceAtBridge
+        uint256 rskPrice
+    );
+
+    event MessageReceived(
+        bytes32 indexed messageId,
+        uint64 indexed sourceChainSelector,
+        address sender,
+        address ethUser,
+        address bitmaskWallet,
+        uint256 amount,
+        uint256 ethPrice
     );
 
     constructor(
@@ -28,40 +37,55 @@ contract bitRWABridgeAdapter is CCIPReceiver {
         address _priceFeed,
         address _ethereumBridge
     ) CCIPReceiver(_ccipRouter) {
-        rRWAToken = ERC20(_rRWAToken);
+        require(_ccipRouter != address(0), "Invalid router");
+        require(_rRWAToken != address(0), "Invalid token");
+        require(_priceFeed != address(0), "Invalid price feed");
+        require(_ethereumBridge != address(0), "Invalid Ethereum bridge");
+
+        rRWAToken = IMintableERC20(_rRWAToken);
         priceFeed = AggregatorV3Interface(_priceFeed);
         ethereumBridge = _ethereumBridge;
     }
 
-    function _ccipReceive(
-        Client.Any2EVMMessage memory message
-    ) internal override {
-        // 1. Verify message comes from Ethereum bridge
-        require(message.sender == abi.decode(message.extraArgs, (address)), "Unauthorized sender");
-        
-        // 2. Decode payload
-        (address ethUser, address bitmaskWallet, uint256 amount, uint256 ethPrice) = 
+    function _ccipReceive(Client.Any2EVMMessage memory message) internal override {
+        // Ensure message is from the Ethereum bridge
+        require(message.sender.length == 32, "Invalid sender payload");
+        address sender = abi.decode(message.sender, (address));
+        require(sender == ethereumBridge, "Unauthorized sender");
+
+        // Decode the payload sent from Ethereum
+        (address ethUser, address bitmaskWallet, uint256 amount, uint256 ethPrice) =
             abi.decode(message.data, (address, address, uint256, uint256));
-        
-        // 3. Get current Rootstock price
+
+        emit MessageReceived(
+            message.messageId,
+            message.sourceChainSelector,
+            sender,
+            ethUser,
+            bitmaskWallet,
+            amount,
+            ethPrice
+        );
+
+        // Fetch latest RSK price
         (, int256 rskPrice,,,) = priceFeed.latestRoundData();
-        uint256 normalizedRskPrice = uint256(rskPrice) * (10**10);
-        
-        // 4. Calculate mint amount with price adjustment
+        require(rskPrice > 0, "Invalid RSK price");
+        uint256 normalizedRskPrice = uint256(rskPrice) * 1e10;
+
+        // Calculate how many rRWA tokens to mint
         uint256 mintAmount = (amount * ethPrice) / normalizedRskPrice;
-        
-        // 5. Mint rRWA tokens
+
+        // Mint tokens to user's bound Bitmask wallet
         rRWAToken.mint(bitmaskWallet, mintAmount);
-        
-        // 6. Emit completion event
+
         emit rRWAMinted(bitmaskWallet, mintAmount, normalizedRskPrice);
-        
-        // 7. Send confirmation back to Ethereum (optional)
-        if(message.extraArgs.length > 0) {
+
+        // Optional: confirmation callback
+        if (message.extraArgs.length > 0) {
             _sendConfirmation(message.sourceChainSelector, message.messageId, bitmaskWallet, mintAmount);
         }
     }
-    
+
     function _sendConfirmation(
         uint64 sourceChainSelector,
         bytes32 originalMessageId,
@@ -75,8 +99,21 @@ contract bitRWABridgeAdapter is CCIPReceiver {
             extraArgs: "",
             feeToken: address(0)
         });
-        
-        ccipRouter.ccipSend(sourceChainSelector, message);
+
+        IRouterClient(getRouter()).ccipSend(sourceChainSelector, message);
+    }
+
+    // View function to simulate CCIP message processing (for testing)
+    function simulateReceive(
+        address ethUser,
+        address bitmaskWallet,
+        uint256 amount,
+        uint256 ethPrice
+    ) external view returns (uint256 mintAmount) {
+        (, int256 rskPrice,,,) = priceFeed.latestRoundData();
+        require(rskPrice > 0, "Invalid RSK price");
+        uint256 normalizedRskPrice = uint256(rskPrice) * 1e10;
+        mintAmount = (amount * ethPrice) / normalizedRskPrice;
+        return mintAmount;
     }
 }
-

@@ -1,81 +1,100 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IRouterClient} from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
-import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
+import { AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import { Client } from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IRWAHub } from "./interfaces/IRWAHub.sol"; 
 
-contract BitRWABridge {
+contract BitRWABridge is Ownable {
     using SafeERC20 for IERC20;
-    
+
     // Chainlink CCIP
-    IRouterClient public immutable ccipRouter; //0xCe7aFb0BF5F73BfDB5e9E04976eBac2005746bD0
-    uint64 public immutable rootstockChainSelector; //11964252391146578476
-    
+    IRouterClient public immutable ccipRouter;
+    uint64 public immutable rootstockChainSelector;
+
     // Ondo RWA Token
     IERC20 public immutable ondoRWAToken;
-    
+
     // Chainlink Price Feed
     AggregatorV3Interface public priceFeed;
-    
-    // BitMask Wallet Registry
+
+    // RWA Hub (for mint requests)
+    IRWAHub public rwaHub;
+
+    // Wallet Bindings (user => bitmask wallet)
     mapping(address => address) public bitmaskWalletBindings;
-    
+
+    // Whitelist / Compliance (user => KYC/AML approved)
+    mapping(address => bool) public isCompliant;
+
     event AssetLocked(
         address indexed user,
         uint256 amount,
         bytes32 indexed ccipMessageId
     );
-    
+
     event BridgeCompleted(
         bytes32 indexed ccipMessageId,
         address indexed bitmaskWallet,
         uint256 mintedAmount
     );
 
+    event ComplianceStatusUpdated(address indexed user, bool isCompliant);
+
     constructor(
         address _ccipRouter,
         uint64 _rootstockSelector,
         address _ondoRWAToken,
-        address _priceFeed
+        address _priceFeed,
+        address _rwaHub
     ) {
         ccipRouter = IRouterClient(_ccipRouter);
         rootstockChainSelector = _rootstockSelector;
         ondoRWAToken = IERC20(_ondoRWAToken);
         priceFeed = AggregatorV3Interface(_priceFeed);
+        rwaHub = IRWAHub(_rwaHub);
+    }
+
+    modifier onlyCompliant(address user) {
+        require(isCompliant[user], "User not compliant (KYC/AML)");
+        _;
     }
 
     function lockAndBridge(
         uint256 amount,
         address bitmaskWallet
-    ) external payable {
-        // 1. Verify user has bound this BitMask wallet
-        require(
-            bitmaskWalletBindings[msg.sender] == bitmaskWallet,
-            "Wallet not bound"
-        );
-        
-        // 2. Transfer RWA tokens from user
+    ) external payable onlyCompliant(msg.sender) {
+        require(bitmaskWalletBindings[msg.sender] == bitmaskWallet, "Wallet not bound");
+        require(amount > 0, "Amount must be > 0");
+
+        // Transfer RWA tokens to this contract
         ondoRWAToken.safeTransferFrom(msg.sender, address(this), amount);
-        
-        // 3. Get current asset price
+
+        // Request mint via RWAHub
+        rwaHub.requestSubscription(amount);
+
+        // Fetch price
         (, int256 price,,,) = priceFeed.latestRoundData();
-        uint256 normalizedPrice = uint256(price) * (10**10); // Adjust for decimals
-        
-        // 4. Prepare CCIP message
+        require(price > 0, "Invalid price feed");
+        uint256 normalizedPrice = uint256(price) * 1e10;
+
+        // Construct CCIP message
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
-            receiver: abi.encode(address(0)), // Factory address will be set in adapter
+            receiver: abi.encode(address(0)),
             data: abi.encode(msg.sender, bitmaskWallet, amount, normalizedPrice),
-            tokenAmounts: new Client.EVMTokenAmount[](0),
+            tokenAmounts: new Client.EVMTokenAmount ,
             extraArgs: "",
             feeToken: address(0)
         });
-        
-        // 5. Send cross-chain message
+
         uint256 fee = ccipRouter.getFee(rootstockChainSelector, message);
         require(msg.value >= fee, "Insufficient CCIP fee");
+
         bytes32 messageId = ccipRouter.ccipSend{value: fee}(rootstockChainSelector, message);
-        
         emit AssetLocked(msg.sender, amount, messageId);
     }
 
@@ -88,6 +107,17 @@ contract BitRWABridge {
     }
 
     function bindBitmaskWallet(address bitmaskWallet) external {
+        require(bitmaskWallet != address(0), "Invalid wallet");
         bitmaskWalletBindings[msg.sender] = bitmaskWallet;
+    }
+
+    function setCompliance(address user, bool approved) external onlyOwner {
+        isCompliant[user] = approved;
+        emit ComplianceStatusUpdated(user, approved);
+    }
+
+    function setRwaHub(address _rwaHub) external onlyOwner {
+        require(_rwaHub != address(0), "Invalid RWAHub");
+        rwaHub = IRWAHub(_rwaHub);
     }
 }
