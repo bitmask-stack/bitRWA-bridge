@@ -15,6 +15,7 @@ contract BitRWABridge is Ownable {
     // Chainlink CCIP
     IRouterClient public immutable ccipRouter;
     uint64 public immutable rootstockChainSelector;
+    address public immutable destinationBridgeAdapter;
 
     // Ondo RWA Token
     IERC20 public immutable ondoRWAToken;
@@ -44,6 +45,7 @@ contract BitRWABridge is Ownable {
     );
 
     event ComplianceStatusUpdated(address indexed user, bool isCompliant);
+    event WalletBound(address indexed user, address indexed bitmaskWallet);
 
     constructor(
         address _ccipRouter,
@@ -51,6 +53,7 @@ contract BitRWABridge is Ownable {
         address _ondoRWAToken,
         address _priceFeed,
         address _rwaHub,
+        address _destinationBridgeAdapter,
         address initialOwner
     ) Ownable(initialOwner) {
         ccipRouter = IRouterClient(_ccipRouter);
@@ -58,6 +61,7 @@ contract BitRWABridge is Ownable {
         ondoRWAToken = IERC20(_ondoRWAToken);
         priceFeed = AggregatorV3Interface(_priceFeed);
         rwaHub = IRWAHub(_rwaHub);
+        destinationBridgeAdapter= _destinationBridgeAdapter;
     }
 
     modifier onlyCompliant(address user) {
@@ -83,11 +87,11 @@ contract BitRWABridge is Ownable {
         require(price > 0, "Invalid price feed");
         uint256 normalizedPrice = uint256(price) * 1e10;
 
-        // Construct CCIP message
+        // Construct CCIP message - FIXED: Now encoding 5 parameters to match BitRWABridgeAdapter expectation
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
-            receiver: abi.encode(address(0)),
-            data: abi.encode(msg.sender, bitmaskWallet, amount, normalizedPrice),
-            tokenAmounts: new Client.EVMTokenAmount[](0) ,
+            receiver: abi.encode(destinationBridgeAdapter),
+            data: abi.encode(msg.sender, bitmaskWallet, amount, normalizedPrice, true), // Added 'true' for sendConfirmation
+            tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: "",
             feeToken: address(0)
         });
@@ -110,6 +114,7 @@ contract BitRWABridge is Ownable {
     function bindBitmaskWallet(address bitmaskWallet) external {
         require(bitmaskWallet != address(0), "Invalid wallet");
         bitmaskWalletBindings[msg.sender] = bitmaskWallet;
+        emit WalletBound(msg.sender, bitmaskWallet);
     }
 
     function setCompliance(address user, bool approved) external onlyOwner {
