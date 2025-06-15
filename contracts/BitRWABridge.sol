@@ -50,8 +50,9 @@ contract BitRWABridge is Ownable {
         uint64 _rootstockSelector,
         address _ondoRWAToken,
         address _priceFeed,
-        address _rwaHub
-    ) {
+        address _rwaHub,
+        address initialOwner
+    ) Ownable(initialOwner) {
         ccipRouter = IRouterClient(_ccipRouter);
         rootstockChainSelector = _rootstockSelector;
         ondoRWAToken = IERC20(_ondoRWAToken);
@@ -86,7 +87,7 @@ contract BitRWABridge is Ownable {
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
             receiver: abi.encode(address(0)),
             data: abi.encode(msg.sender, bitmaskWallet, amount, normalizedPrice),
-            tokenAmounts: new Client.EVMTokenAmount ,
+            tokenAmounts: new Client.EVMTokenAmount[](0) ,
             extraArgs: "",
             feeToken: address(0)
         });

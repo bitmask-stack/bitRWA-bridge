@@ -12,7 +12,7 @@
    ╙▀██▄ '╙╙╙▀▀▀▀▀▀▀▀
       ╙▀▀██████R⌐
  */
-pragma solidity 0.8.16;
+pragma solidity 0.8.28;
 
 interface IRWAHub {
   // Struct to contain the deposit information for a given depositId

@@ -54,8 +54,8 @@ contract BitRWABridgeAdapter is CCIPReceiver {
         require(sender == ethereumBridge, "Unauthorized sender");
 
         // Decode the payload sent from Ethereum
-        (address ethUser, address bitmaskWallet, uint256 amount, uint256 ethPrice) =
-            abi.decode(message.data, (address, address, uint256, uint256));
+        (address ethUser, address bitmaskWallet, uint256 amount, uint256 ethPrice,  bool sendConfirmation) =
+            abi.decode(message.data, (address, address, uint256, uint256, bool));
 
         emit MessageReceived(
             message.messageId,
@@ -81,7 +81,7 @@ contract BitRWABridgeAdapter is CCIPReceiver {
         emit rRWAMinted(bitmaskWallet, mintAmount, normalizedRskPrice);
 
         // Optional: confirmation callback
-        if (message.extraArgs.length > 0) {
+        if (sendConfirmation) {
             _sendConfirmation(message.sourceChainSelector, message.messageId, bitmaskWallet, mintAmount);
         }
     }
