@@ -84,3 +84,4 @@ export const getFaucetTokensAddresses = (network: string) => {
 export const getLINKTokenAddress = (network: string) => {
   return LINK_ADDRESSES[network];
 };
+

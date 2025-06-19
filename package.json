@@ -3,17 +3,20 @@
   "devDependencies": {
     "@chainlink/local": "^0.2.5",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.24.3"
+    "hardhat": "^2.24.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "scripts": {
     "start": "hardhat",
-    "test": "hardhat test test/CrossChainBridgeForked.test.ts"
+    "test": "hardhat test"
   },
   "dependencies": {
     "@chainlink/contracts": "^1.4.0",
     "@chainlink/contracts-ccip": "^1.6.0",
     "@openzeppelin/contracts": "^5.3.0",
-    "chai": "^5.2.0",
+    "@types/chai": "^4.3.8",
+    "chai": "^4.3.7",
     "dotenv": "^16.5.0",
     "ethers": "^6.14.4"
   }

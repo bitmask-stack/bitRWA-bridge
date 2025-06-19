@@ -2,8 +2,8 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
 import { id, AbiCoder } from "ethers";
-import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { MockMintableERC20, MockV3Aggregator, MockRWAHub, CCIPLocalSimulator, BitRWABridge, BitRWABridgeAdapter } from "../typechain-types";
+
+
 
 describe("BitRWABridge and BitRWABridgeAdapter Integration", function () {
     async function deployBridgeFixture() {

@@ -78,4 +78,6 @@ contract MockRWAHub is IRWAHub {
     function completeSubscription(bytes32 subscriptionId) external {
         emit SubscriptionCompleted(subscriptionId);
     }
+
+    
 }

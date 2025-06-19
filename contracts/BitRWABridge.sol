@@ -47,6 +47,12 @@ contract BitRWABridge is Ownable {
     event ComplianceStatusUpdated(address indexed user, bool isCompliant);
     event WalletBound(address indexed user, address indexed bitmaskWallet);
 
+    // Custom errors for better debugging
+    error InsufficientFeeTokenAmount();
+    error InvalidAmount();
+    error WalletNotBound();
+    error UserNotCompliant();
+
     constructor(
         address _ccipRouter,
         uint64 _rootstockSelector,
@@ -61,11 +67,11 @@ contract BitRWABridge is Ownable {
         ondoRWAToken = IERC20(_ondoRWAToken);
         priceFeed = AggregatorV3Interface(_priceFeed);
         rwaHub = IRWAHub(_rwaHub);
-        destinationBridgeAdapter= _destinationBridgeAdapter;
+        destinationBridgeAdapter = _destinationBridgeAdapter;
     }
 
     modifier onlyCompliant(address user) {
-        require(isCompliant[user], "User not compliant (KYC/AML)");
+        if (!isCompliant[user]) revert UserNotCompliant();
         _;
     }
 
@@ -73,8 +79,8 @@ contract BitRWABridge is Ownable {
         uint256 amount,
         address bitmaskWallet
     ) external payable onlyCompliant(msg.sender) {
-        require(bitmaskWalletBindings[msg.sender] == bitmaskWallet, "Wallet not bound");
-        require(amount > 0, "Amount must be > 0");
+        if (bitmaskWalletBindings[msg.sender] != bitmaskWallet) revert WalletNotBound();
+        if (amount == 0) revert InvalidAmount();
 
         // Transfer RWA tokens to this contract
         ondoRWAToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -87,19 +93,27 @@ contract BitRWABridge is Ownable {
         require(price > 0, "Invalid price feed");
         uint256 normalizedPrice = uint256(price) * 1e10;
 
-        // Construct CCIP message - FIXED: Now encoding 5 parameters to match BitRWABridgeAdapter expectation
+        // Construct CCIP message
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
             receiver: abi.encode(destinationBridgeAdapter),
-            data: abi.encode(msg.sender, bitmaskWallet, amount, normalizedPrice, true), // Added 'true' for sendConfirmation
+            data: abi.encode(msg.sender, bitmaskWallet, amount, normalizedPrice, true),
             tokenAmounts: new Client.EVMTokenAmount[](0),
-            extraArgs: "",
-            feeToken: address(0)
+            extraArgs: Client._argsToBytes(
+                Client.EVMExtraArgsV1({gasLimit: 400_000}) // Explicit gas limit
+            ),
+            feeToken: address(0) // Native token (ETH) for fees
         });
 
         uint256 fee = ccipRouter.getFee(rootstockChainSelector, message);
-        require(msg.value >= fee, "Insufficient CCIP fee");
+        if (msg.value < fee) revert InsufficientFeeTokenAmount();
 
         bytes32 messageId = ccipRouter.ccipSend{value: fee}(rootstockChainSelector, message);
+        
+        // Refund excess fee
+        if (msg.value > fee) {
+            payable(msg.sender).transfer(msg.value - fee);
+        }
+        
         emit AssetLocked(msg.sender, amount, messageId);
     }
 
@@ -125,5 +139,32 @@ contract BitRWABridge is Ownable {
     function setRwaHub(address _rwaHub) external onlyOwner {
         require(_rwaHub != address(0), "Invalid RWAHub");
         rwaHub = IRWAHub(_rwaHub);
+    }
+
+    function checkAllowance(address user) external view returns (uint256) {
+        return ondoRWAToken.allowance(user, address(this));
+    }
+
+    // Helper function to estimate fees
+    function estimateFee(
+        uint256 amount,
+        address bitmaskWallet,
+        address ethUser
+    ) external view returns (uint256) {
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        require(price > 0, "Invalid price feed");
+        uint256 normalizedPrice = uint256(price) * 1e10;
+
+        Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
+            receiver: abi.encode(destinationBridgeAdapter),
+            data: abi.encode(ethUser, bitmaskWallet, amount, normalizedPrice, true),
+            tokenAmounts: new Client.EVMTokenAmount[](0),
+            extraArgs: Client._argsToBytes(
+                Client.EVMExtraArgsV1({gasLimit: 400_000})
+            ),
+            feeToken: address(0)
+        });
+
+        return ccipRouter.getFee(rootstockChainSelector, message);
     }
 }
