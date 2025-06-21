@@ -223,6 +223,8 @@ const sourceChainSelector = "16015286601757825753";
         fs.writeFileSync(CONFIG.MSG_FILE, JSON.stringify(msg, null, 2));
         console.log("Mock CCIP message saved");
       });
+
+      
       
   });
 

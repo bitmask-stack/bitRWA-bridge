@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "purpose": "Ondo RWA Bridge Deployment",
+    "timestamp": "2025-06-20T17:17:01.160Z"
+  },
+  "contracts": {
+    "ethereumSepolia": {
+      "ETH_PRICE_FEED": "0xC1Bbe13170693d2d58190B97036B214A06DA0999",
+      "BitRWABridge": "0x24CBa54219D8DDBEbc182fDe031FE36834184f0E"
+    },
+    "rootstock": {
+      "rRWA_TOKEN": "0x56Bb5422CB3dF861dB982Ef0212E991E3560bd25",
+      "RBTC_PRICE_FEED": "0x9Be18Ab3259f6aa1C2982b89Accf5188d27750dd",
+      "BitRWABridgeAdapter": "0x6AD8424b9b374841D84455e310C8d9F96f0f8758"
+    }
+  }
+}
