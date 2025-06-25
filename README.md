@@ -50,10 +50,9 @@ If the [tokenized RWA market reaches **$1 trillion**](https://www.coindesk.com/o
 
 # About BitMask
 
-Rootstock is Bitcoin’s EVM-compatible smart contract layer, secured by merge-mining. It enables DeFi and tokenized RWAs with Bitcoin-grade security.
+💎 → BitMask is a unique Bitcoin wallet and infrastructure that facilitates tokenization via smart contracts on Bitcoin. We support both RGB (Bitcoin native) and Rootstock (EVM compatible) smart contracts natively on Bitcoin.
 
-- Over 1 million wallets
-- Backed by
+- We previously raised $2.5million and backed by Tim Draper of Draper Associates, Bill Tail  and Amanda Terry of ACTAI, Jademont of Waterdrip Capital, Erez Kalir of Martial Eagle Fund in addition to many prolific  investors.
 - Development grant from Rootstock Foundation
 
 # About Rootstock
