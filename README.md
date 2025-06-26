@@ -4,7 +4,9 @@
 
 | $ | **Multi - compliant RWAs** | USDY, OUSG |
 | --- | --- | --- |
-| **⛓️** | **Multi- chain deployment** | Ethereum, Avalanche, Rootstock (BTC) |
+| ⛓️ | **Multi- chain deployment** | Ethereum, Avalanche, Rootstock (BTC) |
+
+**Brridged to Bitcoin via Rootstock**
 
 # Inspiration
 
