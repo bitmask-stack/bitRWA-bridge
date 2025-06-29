@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "purpose": "Ondo RWA Bridge Deployment",
+    "timestamp": "2025-06-26T01:40:13.487Z"
+  },
+  "contracts": {
+    "ethereumSepolia": {
+      "ETH/ONDO_PRICE_FEED": "0xc6482a38572a1a8fA63Ba9187d04ce89d2dE64eF",
+      "RBTC/rONDO_PRICE_FEED": "0x3127c5555De87Ea9F631Bc0BE828E5Edbbd5e3bF",
+      "BitRWABridge": "0x94Da0f6a574AA9Add852595F281afE8725F7B7e4",
+      "rONDO_TOKEN": "0x7dA2611eCe03D21CF66cE875444532CCD334dcE8",
+      "ETH/USDY_PRICE_FEED": "0x92405002EB3d1938bB6D4ce23C74B27810ec1fca",
+      "tRBTC/rUSDY_PRICE_FEED": "0xC35Dc7b0E41aD1EB31C94c9C1c02952768F08Ef4"
+    },
+    "rootstock": {
+      "RBTC_PRICE_FEED": "0xaAf31f3faAe70968d950526AC395AA66ce44dFCd",
+      "BitRWABridgeAdapter": "0x27E5205211105b29430C7EA5A8804C0Bdf2b68f7",
+      "rRWA_TOKEN": "0x54E6036376271b8bfb8Ddc44173F16D31FC003e6"
+    },
+    "hardhat": {
+      "oRWA_TOKEN": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "ETH/ONDO_PRICE_FEED": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+    }
+  }
+}

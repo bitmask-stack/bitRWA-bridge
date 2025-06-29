@@ -62,3 +62,5 @@ If the [tokenized RWA market reaches **$1 trillion**](https://www.coindesk.com/o
 Rootstock is Bitcoin’s EVM-compatible smart contract layer, secured by merge-mining. It enables DeFi and tokenized RWAs with Bitcoin-grade security.
 
 ---
+
+
