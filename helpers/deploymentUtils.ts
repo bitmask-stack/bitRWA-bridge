@@ -73,7 +73,7 @@ export async function deployContract(contractName: string, args: any[], saveAs?:
   export async function deployMintableToken(name: string, symbol: string) {
     const { address } = await deployContract(
       "MockMintableERC20",
-      [name, symbol],
+      [name, symbol, 18],
       `${symbol}_TOKEN`
     );
     return address;

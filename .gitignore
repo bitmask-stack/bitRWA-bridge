@@ -15,3 +15,13 @@ node_modules
 
 # Hardhat Ignition default folder for deployments against a local node
 ignition/deployments/chain-31337
+scripts
+test
+README-TESTNET.md
+flattenBitRWAAdapterBridge.sol
+flattenBitRWABridge.sol
+FlattenBitRWABridgeAdapter.sol
+FlattenMockMintableERC20.sol
+test-results
+BitRWABridgeFixed.sol
+CCIP_ISSUE_DIAGNOSIS.md

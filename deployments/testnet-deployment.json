@@ -1,0 +1,20 @@
+[
+  {
+    "network": "sepolia",
+    "bridge": "0x0e5658d436B611eC0a097D1079e9c75C185956Aa",
+    "adapter": "0xB67E5c5f57A0f50701d4460A4fb5A513dF662908",
+    "ondoToken": "0xbEf8F9c5689F4FD71A3Cb1C31F9aa62F4587ef1D",
+    "rOndoToken": "0x4c1A2F724dF51a64EF516CDCD5aae9E8d30b71FD",
+    "deployer": "0x33ffd32a1506f791f5b71A1E22294590Bd4D3bA0",
+    "timestamp": 1751178241751
+  },
+  {
+    "network": "rootstock",
+    "bridge": "0x55006e6DBb5B8dAa1646E7fC610e6BD6C19acb39",
+    "adapter": "0xF38cBabdc54F1C9E06524fFd0273bD8a0A1F8460",
+    "ondoToken": "0xe7580fc75926Bd417Cfaf88fF111E044AAC08925",
+    "rOndoToken": "0x80b90041A2a65B1CCfdd15F4f22E1F3D53888054",
+    "deployer": "0x33ffd32a1506f791f5b71A1E22294590Bd4D3bA0",
+    "timestamp": 1751178570150
+  }
+]
