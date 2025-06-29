@@ -1,231 +1,66 @@
-# bitRWA-bridge
+# bitRWA-bridge     || Built at Chromion: A Chainlink Hackathon 
+> A trust-minimized, compliant, and capital-efficient way to bring RWAs—like tokenized T-Bills (e.g., BlackRock’s $BUIDL)—to **Bitcoin via Rootstock**, enabled by **Chainlink infrastructure**, **BitMask Wallet**, and **Ondo’s RWA stack**. This unlocks native BTC yield and Bitcoin-based DeFi for institutional and retail market participants.
+> 
 
-# BitRWA Bridge Testnet Deployment & Testing
+| $ | **Multi - compliant RWAs** | USDY, OUSG |
+| --- | --- | --- |
+| ⛓️ | **Multi- chain deployment** | Ethereum, Avalanche, Rootstock (BTC) |
 
-This guide provides step-by-step instructions for deploying and testing the BitRWA Bridge contracts on Ethereum Sepolia and Rootstock testnets.
+**Brridged to Bitcoin via Rootstock**
 
-## Prerequisites
+# Inspiration
 
-1. **Node.js and npm** installed
-2. **Hardhat** configured
-3. **Testnet accounts** with sufficient native tokens for gas
-4. **LINK tokens** for CCIP fees
+As the founder of BitMask, I recently spoke with the RWA team at Franklin Templeton (who currently manage **~$741.5 million** in tokenized assets ). We explored a simple but powerful question:
 
-## Environment Setup
+**What if RWAs could be deployed or bridged directly to Bitcoin?**
 
-Create a `.env` file in the root directory with the following variables:
+The gleam in their eyes said it all—and sparked a deeper dive into institutional appetite for this future. That exploration led us to this hackathon, where we’ve built **a cross-chain RWA bridge** using:
 
-```bash
-# Private key for deployment and testing (without 0x prefix)
-PRIVATE_KEY=your_private_key_here
+- **Chainlink CCIP, Functions, Chainlink Proof of Reserves, and Data Feeds**
+- **Ondo’s RWAHub contracts and Securitize’s KYC/AML stack**
+- **BitMask Wallet** for seamless RWA access on **Rootstock**, Bitcoin’s smart contract layer
 
-# RPC URLs for testnets
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your-project-id
-ROOTSTOCK_RPC_URL=https://public-node.testnet.rsk.co
+Together, these tools enable the compliant, programmable deployment of real-world assets on Bitcoin.
 
-# API Keys for contract verification
-ETHERSCAN_API_KEY=your_etherscan_api_key
-ROOTSTOCK_EXPLORER_API_KEY=your_rootstock_explorer_api_key
+# The Opportunity -  Real-World Assets Meet Bitcoin
 
-# Optional: Enable gas reporting
-REPORT_GAS=true
-```
+Global asset managers, corporate treasuries, and sovereign wealth funds already hold or want Bitcoin exposure. Tokenizing RWAs like U.S. Treasuries, real estate, and commodities on Bitcoin unlocks:
 
-## Testnet Configuration
+- **Global Access** – Anyone, anywhere, anytime
+- **Instant Settlement** – Finality on Bitcoin’s secure rails
+- **Programmable Finance** – RWAs meet DeFi on BTC via Rootstock
+- **BTC Yield Opportunities** – Institutions earn yield, natively swapped to BTC
+- **Bitcoin-Secured** – Protected by over 80% of Bitcoin’s PoW hashpower via merge-mining
+- **Lower & Predictable Fees** – Rootstock gas costs are stable and significantly cheaper than Ethereum
 
-### Ethereum Sepolia
-- **Chain ID**: 11155111
-- **Chain Selector**: 16015286601757825753
-- **CCIP Router**: 0xD0daae2231E9CB96b94C8512223533293C3693Bf
-- **LINK Token**: 0x779877A7B0D9E8603169DdbD7836e478b4624789
-- **ETH/USD Price Feed**: 0x694AA1769357215DE4FAC081bf1f309aDC325306
+This creates a **zero-friction capital loop** and unlocks **trillions in institutional capital**, with composability and compliance at its core.
 
-### Rootstock Testnet
-- **Chain ID**: 31
-- **Chain Selector**: 12532609583862916517
-- **CCIP Router**: 0x536d7E53D0aDeB1F20E7c81fea45d02eC8dBD2bA
-- **LINK Token**: 0x14a406c3a22d66eB2bc444fF408f9566C8DD3985
-- **BTC/USD Price Feed**: 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43
+# Potential Market Impact and Revenue
 
-## Getting Testnet Tokens
+If the [tokenized RWA market reaches **$1 trillion**](https://www.coindesk.com/opinion/2023/08/31/the-trillion-dollar-crypto-opportunity-real-world-asset-tokenization) (a mid-range projection), Bitcoin capturing even **2–5%** would represent $20–50B in assets.
 
-### Sepolia
-1. **ETH**: Use Sepolia faucets (Infura, Alchemy, etc.)
-2. **LINK**: Use Chainlink faucet or swap on Uniswap Sepolia
+- At a 3% yield:
+    
+    ➤ $20B = **$600M/year** in yield on Bitcoin rails
+    
+- With swap/bridge fees (~0.05–0.1%):
+    
+    ➤ $10–25M/year in protocol revenue
+    
 
-### Rootstock
-1. **RBTC**: Use Rootstock faucet
-2. **LINK**: Use Rootstock faucet or swap on RSKSwap
+---
 
-## Deployment Steps
+# About BitMask
 
-### 1. Install Dependencies
-```bash
-npm install
-```
+💎 → BitMask is a unique Bitcoin wallet and infrastructure that facilitates tokenization via smart contracts on Bitcoin. We support both RGB (Bitcoin native) and Rootstock (EVM compatible) smart contracts natively on Bitcoin.
 
-### 2. Compile Contracts
-```bash
-npx hardhat compile
-```
+- We previously raised $2.5million and backed by Tim Draper of Draper Associates, Bill Tail  and Amanda Terry of ACTAI, Jademont of Waterdrip Capital, Erez Kalir of Martial Eagle Fund in addition to many prolific  investors.
+- Development grant from Rootstock Foundation
 
-### 3. Deploy Contracts
-```bash
-npx hardhat run scripts/deploy-bridge-testnet.ts --network sepolia
-npx hardhat run scripts/deploy-bridge-testnet.ts --network rootstock
-```
+# About Rootstock
 
-The deployment script will:
-- Deploy mock ONDO and rONDO tokens
-- Deploy BitRWABridge and BitRWABridgeAdapter contracts
-- Link the contracts together
-- Save deployment addresses to `deployments/testnet-deployment.json`
+Rootstock is Bitcoin’s EVM-compatible smart contract layer, secured by merge-mining. It enables DeFi and tokenized RWAs with Bitcoin-grade security.
 
-### 4. Verify Contracts (Optional)
-```bash
-# Verify on Sepolia
-npx hardhat verify --network sepolia <BRIDGE_ADDRESS> <ROUTER> <CHAIN_SELECTOR> <ONDO_TOKEN> <ETH_USD_FEED> <ADAPTER_ADDRESS> <OWNER>
+---
 
-# Verify on Rootstock
-npx hardhat verify --network rootstock <ADAPTER_ADDRESS> <ROUTER> <RONDO_TOKEN> <BTC_USD_FEED> <BRIDGE_ADDRESS> <CHAIN_SELECTOR> <OWNER>
-```
 
-## Testing CCIP Flow
-
-### 1. Run Testnet Tests
-```bash
-npx hardhat run scripts/test-ccip-testnet.ts --network sepolia
-npx hardhat run scripts/test-ccip-testnet.ts --network rootstock
-```
-
-The test script will:
-- Verify contract linking
-- Check account balances
-- Perform Sepolia → Rootstock bridge transaction
-- Perform Rootstock → Sepolia bridge transaction
-- Monitor CCIP message processing
-- Verify token balances after bridging
-
-### 2. Manual Testing
-
-You can also test manually using the deployed contracts:
-
-#### Bridge from Sepolia to Rootstock
-```javascript
-// 1. Mint ONDO tokens
-await ondoToken.mint(userAddress, ethers.parseEther("1000"));
-
-// 2. Approve bridge
-await ondoToken.approve(bridgeAddress, ethers.parseEther("100"));
-
-// 3. Bridge tokens
-await bridge.lockAndBridge(
-  ethers.parseEther("100"),
-  "12532609583862916517", // Rootstock chain selector
-  userAddress,
-  userAddress,
-  "0x"
-);
-```
-
-#### Bridge from Rootstock to Sepolia
-```javascript
-// 1. Mint rONDO tokens
-await rOndoToken.mint(userAddress, ethers.parseEther("1000"));
-
-// 2. Approve adapter
-await rOndoToken.approve(adapterAddress, ethers.parseEther("100"));
-
-// 3. Bridge tokens
-await adapter.lockAndBridge(
-  ethers.parseEther("100"),
-  "16015286601757825753", // Sepolia chain selector
-  userAddress,
-  userAddress,
-  "0x"
-);
-```
-
-## Monitoring CCIP Messages
-
-### 1. Check Message Status
-Use the CCIP Router's `getLastReceivedMessageDetails` function to check message status:
-
-```javascript
-const router = await ethers.getContractAt("IRouterClient", routerAddress);
-const messageDetails = await router.getLastReceivedMessageDetails();
-```
-
-### 2. Monitor Events
-Listen for CCIP events:
-- `TokensLocked`: Tokens locked on source chain
-- `TokensUnlocked`: Tokens unlocked on destination chain
-- `TokensMinted`: Tokens minted on destination chain
-
-### 3. Check Balances
-Monitor token balances on both chains to verify successful bridging.
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Insufficient Gas**
-   - Ensure accounts have sufficient native tokens for gas
-   - Rootstock uses different gas pricing (0.06 gwei)
-
-2. **Insufficient LINK for CCIP Fees**
-   - Fund accounts with LINK tokens
-   - CCIP fees vary based on message size and gas costs
-
-3. **Message Processing Delays**
-   - CCIP messages can take 5-15 minutes to process
-   - Check message status using router functions
-
-4. **Contract Verification Issues**
-   - Rootstock uses Sourcify for verification
-   - Ensure correct constructor arguments
-
-### Debug Commands
-
-```bash
-# Check contract state
-npx hardhat console --network sepolia
-npx hardhat console --network rootstock
-
-# Run specific tests
-npx hardhat test test/CCIPMessageSimulation.test.ts
-
-# Check deployment
-cat deployments/testnet-deployment.json
-```
-
-## Security Considerations
-
-1. **Private Key Security**
-   - Never commit private keys to version control
-   - Use environment variables for sensitive data
-
-2. **Testnet vs Mainnet**
-   - These contracts are for testing only
-   - Use different accounts for mainnet deployment
-
-3. **CCIP Security**
-   - Verify message authenticity
-   - Check sender addresses
-   - Validate chain selectors
-
-## Next Steps
-
-After successful testnet deployment and testing:
-
-1. **Audit Contracts**: Conduct security audit
-2. **Mainnet Deployment**: Deploy to mainnet networks
-3. **Monitoring**: Set up monitoring and alerting
-4. **Documentation**: Update documentation for production use
-
-## Support
-
-For issues and questions:
-- Check the CCIP documentation
-- Review contract logs and events
-- Monitor network status and gas prices 
